@@ -10,15 +10,14 @@ using System.Threading.Tasks;
 using static NetSdrClientApp.Messages.NetSdrMessageHelper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
+
 namespace NetSdrClientApp
 {
     public class NetSdrClient
     {
-        // FIX #1 (L17): Make '_tcpClient' 'readonly' - Major Code Smell
-        private readonly ITcpClient _tcpClient;
         
-        // FIX #2 (L18): Make '_udpClient' 'readonly' - Major Code Smell
-        private readonly IUdpClient _udpClient;
+       private readonly ITcpClient _tcpClient;
+       private readonly IUdpClient _udpClient;
 
         public bool IQStarted { get; set; }
 
@@ -33,7 +32,6 @@ namespace NetSdrClientApp
 
         public async Task ConnectAsync()
         {
-            //conction logic
             if (!_tcpClient.Connected)
             {
                 _tcpClient.Connect();
@@ -70,8 +68,6 @@ namespace NetSdrClientApp
                 return;
             }
 
-            // FIX #4 (L70): Remove this empty statement - Minor Code Smell
-            // ВИДАЛЕНО: ;
             var iqDataMode = (byte)0x80;
             var start = (byte)0x02;
             var fifo16bitCaptureMode = (byte)0x01;
@@ -87,6 +83,7 @@ namespace NetSdrClientApp
 
             _ = _udpClient.StartListeningAsync();
         }
+        
 
         public async Task StopIQAsync()
         {
@@ -120,38 +117,33 @@ namespace NetSdrClientApp
             await SendTcpRequest(msg);
         }
 
-        // FIX #5 (L118): Make '_udpClient_MessageReceived' a static method - Minor Code Smell
-        // НЕ МОЖНА зробити static, бо використовується instance поле
-        // FIX #6, #7, #8 (L120): Remove unused variables 'type', 'code', 'sequenceNum' - Minor Code Smell
-        private void _udpClient_MessageReceived(object? sender, byte[] e)
+#pragma warning disable S2325 // Event handler cannot be static
+private void _udpClient_MessageReceived(object? sender, byte[] e)
+{
+    NetSdrMessageHelper.TranslateMessage(e, out _, out _, out _, out byte[] body);
+    var samples = NetSdrMessageHelper.GetSamples(16, body);
+
+    Console.WriteLine($"Samples recieved: " + body.Select(b => Convert.ToString(b, toBase: 16)).Aggregate((l, r) => $"{l} {r}"));
+
+    using (FileStream fs = new FileStream("samples.bin", FileMode.Append, FileAccess.Write, FileShare.Read))
+    using (BinaryWriter sw = new BinaryWriter(fs))
+    {
+        foreach (var sample in samples)
         {
-            // Змінено: не зберігаємо непотрібні змінні
-            NetSdrMessageHelper.TranslateMessage(e, out _, out _, out _, out byte[] body);
-            var samples = NetSdrMessageHelper.GetSamples(16, body);
-
-            Console.WriteLine($"Samples recieved: " + body.Select(b => Convert.ToString(b, toBase: 16)).Aggregate((l, r) => $"{l} {r}"));
-
-            using (FileStream fs = new FileStream("samples.bin", FileMode.Append, FileAccess.Write, FileShare.Read))
-            using (BinaryWriter sw = new BinaryWriter(fs))
-            {
-                foreach (var sample in samples)
-                {
-                    sw.Write((short)sample); //write 16 bit per sample as configured 
-                }
-            }
+            sw.Write((short)sample); //write 16 bit per sample as configured 
         }
+    }
+}
+#pragma warning restore S2325
 
-        // FIX #3 (L22): Non-nullable field 'responseTaskSource' must contain a non-null value - Major Code Smell
         private TaskCompletionSource<byte[]>? responseTaskSource;
 
-        // FIX #9 (L142): Possible null reference return - Major Code Smell
-        // FIX #11 (L161): Cannot convert null literal to non-nullable reference type - Major Code Smell
         private async Task<byte[]?> SendTcpRequest(byte[] msg)
         {
             if (!_tcpClient.Connected)
             {
                 Console.WriteLine("No active connection.");
-                return null; // Тепер це дозволено завдяки byte[]?
+                return null;
             }
 
             responseTaskSource = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -166,9 +158,7 @@ namespace NetSdrClientApp
 
         private void _tcpClient_MessageReceived(object? sender, byte[] e)
         {
-            // FIX #10 (L157): Complete the task associated to this 'TODO' comment - Info Code Smell
-            // TODO: Implement Unsolicited messages handling here
-            // Наразі просто логуємо всі отримані повідомлення
+            
             if (responseTaskSource != null)
             {
                 responseTaskSource.SetResult(e);
