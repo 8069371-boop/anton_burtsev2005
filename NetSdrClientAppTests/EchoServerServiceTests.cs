@@ -390,4 +390,4 @@ namespace NetSdrClientAppTests
             echoedData.Should().BeEquivalentTo(largeData);
         }
     }
-}
+} 
