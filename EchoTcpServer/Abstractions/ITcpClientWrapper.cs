@@ -8,5 +8,3 @@ namespace EchoServer.Abstractions
         void Close();
     }
 }
-
-
