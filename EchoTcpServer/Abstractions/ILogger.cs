@@ -1,4 +1,3 @@
-
 namespace EchoServer.Abstractions
 {
     public interface ILogger
@@ -7,5 +6,3 @@ namespace EchoServer.Abstractions
         void LogError(string message);
     }
 }
-
-
