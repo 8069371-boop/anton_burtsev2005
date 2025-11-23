@@ -1,4 +1,4 @@
-﻿using NetSdrClientApp;
+using NetSdrClientApp;
 using NetSdrClientApp.Networking;
 
 Console.WriteLine(@"Usage:
@@ -44,8 +44,3 @@ while (true)
         break;
     }
 }
-
-
-
-
-
