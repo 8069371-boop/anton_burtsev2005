@@ -37,6 +37,3 @@ namespace EchoServer.Abstractions
         }
     }
 }
-
-
-
