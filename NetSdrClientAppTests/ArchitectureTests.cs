@@ -51,4 +51,4 @@ namespace NetSdrClientAppTests
             Assert.That(result.IsSuccessful, Is.True);
         }
     }
-}
+} 
