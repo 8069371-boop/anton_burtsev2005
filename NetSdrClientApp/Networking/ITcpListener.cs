@@ -9,3 +9,6 @@ namespace NetSdrClientApp.Networking.Interfaces
         Task<ITcpClient> AcceptTcpClientAsync();
     }
 }
+
+
+
