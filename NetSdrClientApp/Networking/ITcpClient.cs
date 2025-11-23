@@ -17,3 +17,9 @@ namespace NetSdrClientApp.Networking
         public bool Connected { get; }
     }
 }  
+
+
+
+
+
+
