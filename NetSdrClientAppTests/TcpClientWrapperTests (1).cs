@@ -434,10 +434,6 @@ namespace NetSdrClientApp.Tests.Networking
             catch (OperationCanceledException) { }
         }
     }
-
 }
-
-
-
 
 
