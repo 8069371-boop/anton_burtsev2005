@@ -431,10 +431,3 @@ public class NetSdrClientTests
         }
     }
 }
-
-
-
-
-
-
-
