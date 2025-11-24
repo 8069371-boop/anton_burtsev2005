@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NetSdrClientApp.Messages
 {
-
+    //TODO: analyze possible use of [StructLayout] for better performance and readability 
     public static class NetSdrMessageHelper
     {
         private const short _maxMessageLength = 8191;
@@ -159,3 +159,5 @@ namespace NetSdrClientApp.Messages
         }
     }
 }
+
+
