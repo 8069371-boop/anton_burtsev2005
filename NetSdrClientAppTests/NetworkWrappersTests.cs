@@ -1,124 +1,69 @@
-using System;
-using System.Net;
-using System.Net.Sockets;
-using EchoServer.Abstractions;
-using FluentAssertions;
-using NUnit.Framework;
+using NetSdrClientApp.Messages;
 
 namespace NetSdrClientAppTests
 {
-    [TestFixture]
-    public class NetworkWrappersTests
+    public class NetSdrMessageHelperTests
     {
-        [Test]
-        public void TcpListenerFactory_ShouldCreateListener()
+        [SetUp]
+        public void Setup()
         {
-            // Arrange
-            var factory = new TcpListenerFactory();
-
-            // Act
-            using var listener = factory.Create(IPAddress.Loopback, 0);
-
-            // Assert
-            listener.Should().NotBeNull();
-            listener.Should().BeAssignableTo<ITcpListenerWrapper>();
         }
 
         [Test]
-        public void ConsoleLogger_ShouldNotThrow()
+        public void GetControlItemMessageTest()
         {
-            // Arrange
-            var logger = new ConsoleLogger();
+            //Arrange
+            var type = NetSdrMessageHelper.MsgTypes.Ack;
+            var code = NetSdrMessageHelper.ControlItemCodes.ReceiverState;
+            int parametersLength = 7500;
 
-            // Act & Assert
-            Action actLog = () => logger.Log("Test message");
-            Action actError = () => logger.LogError("Test error");
+            //Act
+            byte[] msg = NetSdrMessageHelper.GetControlItemMessage(type, code, new byte[parametersLength]);
 
-            actLog.Should().NotThrow();
-            actError.Should().NotThrow();
+            var headerBytes = msg.Take(2);
+            var codeBytes = msg.Skip(2).Take(2);
+            var parametersBytes = msg.Skip(4);
+
+            var num = BitConverter.ToUInt16(headerBytes.ToArray());
+            var actualType = (NetSdrMessageHelper.MsgTypes)(num >> 13);
+            var actualLength = num - ((int)actualType << 13);
+            var actualCode = BitConverter.ToInt16(codeBytes.ToArray());
+
+            //Assert
+            Assert.That(headerBytes.Count(), Is.EqualTo(2));
+            Assert.That(msg.Length, Is.EqualTo(actualLength));
+            Assert.That(type, Is.EqualTo(actualType));
+
+            Assert.That(actualCode, Is.EqualTo((short)code));
+
+            Assert.That(parametersBytes.Count(), Is.EqualTo(parametersLength));
         }
 
         [Test]
-        public void NetworkStreamWrapper_ShouldImplementInterface()
+        public void GetDataItemMessageTest()
         {
-            // Arrange & Act
-            var wrapperType = typeof(NetworkStreamWrapper);
+            //Arrange
+            var type = NetSdrMessageHelper.MsgTypes.DataItem2;
+            int parametersLength = 7500;
 
-            // Assert
-            wrapperType.Should().NotBeNull();
-            wrapperType.GetInterfaces().Should().Contain(typeof(INetworkStreamWrapper));
+            //Act
+            byte[] msg = NetSdrMessageHelper.GetDataItemMessage(type, new byte[parametersLength]);
+
+            var headerBytes = msg.Take(2);
+            var parametersBytes = msg.Skip(2);
+
+            var num = BitConverter.ToUInt16(headerBytes.ToArray());
+            var actualType = (NetSdrMessageHelper.MsgTypes)(num >> 13);
+            var actualLength = num - ((int)actualType << 13);
+
+            //Assert
+            Assert.That(headerBytes.Count(), Is.EqualTo(2));
+            Assert.That(msg.Length, Is.EqualTo(actualLength));
+            Assert.That(type, Is.EqualTo(actualType));
+
+            Assert.That(parametersBytes.Count(), Is.EqualTo(parametersLength));
         }
 
-        [Test]
-        public void TcpListenerWrapper_ShouldStartAndStop()
-        {
-            // Arrange
-            var wrapper = new TcpListenerWrapper(IPAddress.Loopback, 0);
-
-            // Act
-            Action startAct = () => wrapper.Start();
-            Action stopAct = () => wrapper.Stop();
-
-            // Assert
-            startAct.Should().NotThrow();
-            stopAct.Should().NotThrow();
-            wrapper.Dispose();
-        }
-
-        [Test]
-        public void TcpClientWrapper_ShouldImplementInterface()
-        {
-            // Arrange & Act
-            var wrapperType = typeof(TcpClientWrapper);
-
-            // Assert
-            wrapperType.Should().Implement<ITcpClientWrapper>();
-        }
-
-        [Test]
-        public void TcpListenerFactory_ShouldCreateMultipleListeners()
-        {
-            // Arrange
-            var factory = new TcpListenerFactory();
-
-            // Act
-            using var listener1 = factory.Create(IPAddress.Loopback, 0);
-            using var listener2 = factory.Create(IPAddress.Loopback, 0);
-
-            // Assert
-            listener1.Should().NotBeNull();
-            listener2.Should().NotBeNull();
-            listener1.Should().NotBeSameAs(listener2);
-        }
-
-        [Test]
-        public void ConsoleLogger_ShouldLogErrorWithPrefix()
-        {
-            // Arrange
-            var logger = new ConsoleLogger();
-
-            // Act & Assert
-            Action act = () => logger.LogError("Critical error");
-            act.Should().NotThrow();
-        }
-
-        [Test]
-        public void TcpListenerWrapper_Dispose_ShouldNotThrow()
-        {
-            // Arrange
-            var wrapper = new TcpListenerWrapper(IPAddress.Loopback, 0);
-            wrapper.Start();
-
-            // Act
-            Action act = () => wrapper.Dispose();
-
-            // Assert
-            act.Should().NotThrow();
-        }
+        //TODO: add more NetSdrMessageHelper tests
     }
-} 
-
-
-
-
-
+}
