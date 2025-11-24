@@ -10,5 +10,3 @@ namespace NetSdrClientApp.Networking.Interfaces
     }
 }
 
-
-
