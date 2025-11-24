@@ -152,10 +152,3 @@ namespace NetSdrClientAppTests
     }
 }
 
-
-
-
-
-
-
-
