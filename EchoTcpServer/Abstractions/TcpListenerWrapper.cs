@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 
 namespace EchoServer.Abstractions
 {
-    public class TcpListenerWrapper : ITcpListenerWrapper, IDisposable
+    public class TcpListenerWrapper : ITcpListenerWrapper
     {
         private readonly TcpListener _listener;
-        private bool _disposed;
 
         public TcpListenerWrapper(IPAddress address, int port)
         {
@@ -31,23 +30,11 @@ namespace EchoServer.Abstractions
             return new TcpClientWrapper(client);
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    // Звільнення managed ресурсів
-                    _listener?.Stop();
-                }
-                _disposed = true;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(true);
+            _listener?.Stop();
             GC.SuppressFinalize(this);
         }
     }
 }
+
