@@ -866,9 +866,3 @@ namespace NetSdrClientApp.Tests.Networking
     }
 }
 
-
-
-
-
-
-
